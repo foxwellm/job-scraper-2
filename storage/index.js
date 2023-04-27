@@ -3,6 +3,7 @@ const path = require("path");
 
 module.exports = {
   addJobs,
+  getJobs,
 };
 
 function addJobs(newJobs) {
@@ -38,4 +39,16 @@ function addJobs(newJobs) {
       console.log("Data written successfully!");
     });
   });
+}
+
+function getJobs() {
+
+  const filename = path.join(__dirname, "jobs.json");
+
+  try {
+    return JSON.parse(fs.readFileSync(filename, 'utf8'))
+  } catch (err) {
+    console.error(err)
+  }
+
 }
