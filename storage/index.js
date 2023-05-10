@@ -3,6 +3,9 @@ const path = require("path");
 
 module.exports = {
   addJobs,
+  applyJob,
+  deleteJob,
+  findAllRemovedTitles,
   getJobs,
 };
 
@@ -41,14 +44,60 @@ function addJobs(newJobs) {
   });
 }
 
-function getJobs() {
+function findAllRemovedTitles() {
+  const filename = path.join(__dirname, "title.json");
 
+  try {
+    return JSON.parse(fs.readFileSync(filename, "utf8"))
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function getJobs() {
   const filename = path.join(__dirname, "jobs.json");
 
   try {
-    return JSON.parse(fs.readFileSync(filename, 'utf8'))
+    return JSON.parse(fs.readFileSync(filename, "utf8"));
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
+}
 
+function deleteJob(id) {
+  const filename = path.join(__dirname, "jobs.json");
+
+  fs.readFile(filename, (err, fileData) => {
+    const jobs = JSON.parse(fileData);
+
+    jobs[id] = {
+      ...jobs[id],
+      isDeleted: true,
+    };
+
+    // Modify the data and write it back to the file
+    fs.writeFile(filename, JSON.stringify(jobs), (err) => {
+      if (err) console.error(err);
+      console.log("Job Deleted successfully!");
+    });
+  });
+}
+
+function applyJob(id) {
+  const filename = path.join(__dirname, "jobs.json");
+
+  fs.readFile(filename, (err, fileData) => {
+    const jobs = JSON.parse(fileData);
+
+    jobs[id] = {
+      ...jobs[id],
+      hasApplied: true,
+    };
+
+    // Modify the data and write it back to the file
+    fs.writeFile(filename, JSON.stringify(jobs), (err) => {
+      if (err) console.error(err);
+      console.log("Job Applied successfully!");
+    });
+  });
 }
