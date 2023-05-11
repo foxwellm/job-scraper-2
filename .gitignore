@@ -10,4 +10,5 @@ lerna-debug.log*
 node_modules/
 .DS_Store
 
+# Jobs saved from scraping
 storage/jobs.json
