@@ -49,14 +49,16 @@ const initialPages = [
         console.log(`Successfully added new jobs`);
         paginationNumber++;
 
-        const sel = await page.waitForSelector(
+        const nextPage = await page.waitForSelector(
           `[data-test="pagination-link-${paginationNumber}"]`,
           {
             timeout: 3000,
           }
         );
 
-        await sel.click();
+        await nextPage.click();
+        // Give time for the page to load
+        await new Promise((r) => setTimeout(r, 3000));
       } catch (err) {
         console.error(err);
         paginationNumber = 0;
@@ -72,48 +74,41 @@ async function scrapePageJobs(page, scrapeRunTime, scrapePage) {
   const elements = await page.$$(".react-job-listing");
 
   for (let i = 0; i < elements.length; i++) {
-    const {
-      title,
-      location,
-      jobCode,
-      gdId,
-      href,
-      isEasyApply,
-      companyName,
-    } = await page.evaluate((el) => {
-      const location = el["dataset"].jobLoc;
-      const jobCode = el["dataset"].sgocId;
-      const gdId = el["dataset"].id;
-      const isEasyApply = el["dataset"].isEasyApply;
+    const { title, location, jobCode, gdId, href, isEasyApply, companyName } =
+      await page.evaluate((el) => {
+        const location = el["dataset"].jobLoc;
+        const jobCode = el["dataset"].sgocId;
+        const gdId = el["dataset"].id;
+        const isEasyApply = el["dataset"].isEasyApply;
 
-      let title = el.lastElementChild.childNodes[1]?.innerText;
-      let href, companyName;
+        let title = el.lastElementChild.childNodes[1]?.innerText;
+        let href, companyName;
 
-      // NOTE: Sometimes the page will render in "compact" styling
-      if (title) {
-        href = el.firstElementChild.firstElementChild?.href;
-        companyName =
-          el.lastElementChild.firstElementChild.firstElementChild?.innerText;
-      } else {
-        title =
-          el.firstElementChild.firstElementChild.firstElementChild
-            .firstElementChild.childNodes[1]?.innerText;
-        href = el.firstElementChild.firstElementChild.firstElementChild?.href;
-        companyName =
-          el.firstElementChild.firstElementChild.firstElementChild
-            .firstElementChild.firstElementChild.lastElementChild.innerText;
-      }
+        // NOTE: Sometimes the page will render in "compact" styling
+        if (title) {
+          href = el.firstElementChild.firstElementChild?.href;
+          companyName =
+            el.lastElementChild.firstElementChild.firstElementChild?.innerText;
+        } else {
+          title =
+            el.firstElementChild.firstElementChild.firstElementChild
+              .firstElementChild.childNodes[1]?.innerText;
+          href = el.firstElementChild.firstElementChild.firstElementChild?.href;
+          companyName =
+            el.firstElementChild.firstElementChild.firstElementChild
+              .firstElementChild.firstElementChild.lastElementChild.innerText;
+        }
 
-      return {
-        title,
-        location,
-        jobCode,
-        gdId,
-        href,
-        companyName,
-        isEasyApply,
-      };
-    }, elements[i]);
+        return {
+          title,
+          location,
+          jobCode,
+          gdId,
+          href,
+          companyName,
+          isEasyApply,
+        };
+      }, elements[i]);
 
     if (!title || !href) {
       console.log("no title");
