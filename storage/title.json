@@ -11,6 +11,7 @@
     "python",
     "test",
     "principal",
+    "principle",
     "lead",
     "salesforce",
     "manager",
@@ -38,7 +39,9 @@
     "director",
     "golang",
     "assembly",
-    "oracle"
+    "oracle",
+    "mainframe",
+    "mean"
   ],
   "removeRegexTitle": ["java"]
 }

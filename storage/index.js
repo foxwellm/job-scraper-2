@@ -9,10 +9,12 @@ module.exports = {
   getJobs,
 };
 
+const jobsStorageFile = "jobs.json";
+
 function addJobs(newJobs) {
   if (!Object.keys(newJobs).length) return;
 
-  const filename = path.join(__dirname, "jobs.json");
+  const filename = path.join(__dirname, jobsStorageFile);
 
   fs.readFile(filename, (err, fileData) => {
     if (err) {
@@ -48,14 +50,14 @@ function findAllRemovedTitles() {
   const filename = path.join(__dirname, "title.json");
 
   try {
-    return JSON.parse(fs.readFileSync(filename, "utf8"))
+    return JSON.parse(fs.readFileSync(filename, "utf8"));
   } catch (err) {
     console.error(err);
   }
 }
 
 function getJobs() {
-  const filename = path.join(__dirname, "jobs.json");
+  const filename = path.join(__dirname, jobsStorageFile);
 
   try {
     return JSON.parse(fs.readFileSync(filename, "utf8"));
@@ -65,7 +67,7 @@ function getJobs() {
 }
 
 function deleteJob(id) {
-  const filename = path.join(__dirname, "jobs.json");
+  const filename = path.join(__dirname, jobsStorageFile);
 
   fs.readFile(filename, (err, fileData) => {
     const jobs = JSON.parse(fileData);
@@ -84,7 +86,7 @@ function deleteJob(id) {
 }
 
 function applyJob(id) {
-  const filename = path.join(__dirname, "jobs.json");
+  const filename = path.join(__dirname, jobsStorageFile);
 
   fs.readFile(filename, (err, fileData) => {
     const jobs = JSON.parse(fileData);
