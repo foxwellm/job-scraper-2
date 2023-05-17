@@ -1,43 +1,149 @@
 import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
+import {
+  Card,
+  Container,
+  Grid,
+  CardContent,
+  CardActions,
+  Button,
+  Typography,
+  CardHeader,
+  Avatar,
+} from "@mui/material";
+
+interface Job {
+  id: string;
+  title: string;
+  companyName: string;
+  location: string;
+  href: string;
+  isDeleted: boolean;
+  hasApplied: boolean;
+  scrapeLocation: string;
+}
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [currentJob, setCurrentJob] = useState("");
 
   useEffect(() => {
     const fetchJobs = async () => {
       const response = await fetch("http://localhost:3000/jobs");
       const result = await response.json();
-      console.log("🚀 ~ file: App.tsx:13 ~ fetchJobs ~ result:", result);
+      setJobs(result);
     };
-    fetchJobs()
+    fetchJobs();
   }, []);
 
+  const onDeleteClick = async (id: string) => {
+    try {
+      await fetch(`http://localhost:3000/jobs/delete/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setJobs((jo) =>
+        jo.filter((j) => {
+          if (j.id === id) return false;
+          return true;
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const onApplyClick = async (id: string) => {
+    try {
+      await fetch(`http://localhost:3000/jobs/apply/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setJobs((jo) =>
+        jo.map((j) => {
+          if (j.id === id) {
+            return {
+              ...j,
+              hasApplied: true,
+            };
+          }
+          return j;
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Container>
+      <Grid container spacing={2}>
+        {jobs.map(
+          ({
+            id,
+            title,
+            href,
+            isDeleted,
+            hasApplied,
+            companyName,
+            location,
+            scrapeLocation,
+          }) => {
+            const backgroundColor = isDeleted
+              ? "red"
+              : hasApplied
+              ? "green"
+              : "white";
+            let locationType = { symbol: "?", color: "red" };
+            if (scrapeLocation === "remote")
+              locationType = { symbol: "R", color: "green" };
+            if (scrapeLocation === "seattle")
+              locationType = { symbol: "S", color: "blue" };
+            return (
+              <Grid item key={id}>
+                <Card variant="outlined" sx={{ backgroundColor }}>
+                  <CardHeader
+                    avatar={
+                      <Avatar sx={{ bgcolor: locationType.color }}>
+                        {locationType.symbol}
+                      </Avatar>
+                    }
+                    title={title}
+                    subheader={location}
+                  />
+                  <CardContent>
+                    {/* <Typography sx={{ fontSize: 14 }}>{title}</Typography> */}
+                    <Typography sx={{ fontSize: 10 }}>{companyName}</Typography>
+                    {/* <Typography sx={{ fontSize: 10 }}>{location}</Typography> */}
+                  </CardContent>
+                  <CardActions>
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      <Button
+                        onClick={() => setCurrentJob(id)}
+                        variant={currentJob === id ? "contained" : "outlined"}
+                        size="small"
+                      >
+                        More
+                      </Button>
+                    </a>
+                    <Button onClick={() => onDeleteClick(id)} size="small">
+                      Delete
+                    </Button>
+                    <Button onClick={() => onApplyClick(id)} size="small">
+                      Apply
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            );
+          }
+        )}
+      </Grid>
+    </Container>
   );
 }
 
