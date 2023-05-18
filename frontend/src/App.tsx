@@ -1,31 +1,18 @@
-import { useEffect, useState } from "react";
 import "./App.css";
-import {
-  Card,
-  Container,
-  Grid,
-  CardContent,
-  CardActions,
-  Button,
-  Typography,
-  CardHeader,
-  Avatar,
-} from "@mui/material";
-
-interface Job {
-  id: string;
-  title: string;
-  companyName: string;
-  location: string;
-  href: string;
-  isDeleted: boolean;
-  hasApplied: boolean;
-  scrapeLocation: string;
-}
+import { useEffect, useState, SyntheticEvent } from "react";
+import { Container, Tab, Box } from "@mui/material";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
+import JobCards from "./components/JobCards";
+import { Job } from "./interfaces/Job";
 
 function App() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [currentJob, setCurrentJob] = useState("");
+  const [jobFocusId, setJobFocusId] = useState("");
+  const [tabValue, setTabValue] = useState("1");
+
+  const handleChange = (event: SyntheticEvent, newValue: string) => {
+    setTabValue(newValue);
+  };
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -36,7 +23,7 @@ function App() {
     fetchJobs();
   }, []);
 
-  const onDeleteClick = async (id: string) => {
+  const onDeleteJob = async (id: string) => {
     try {
       await fetch(`http://localhost:3000/jobs/delete/${id}`, {
         method: "PUT",
@@ -44,18 +31,13 @@ function App() {
           "Content-Type": "application/json",
         },
       });
-      setJobs((jo) =>
-        jo.filter((j) => {
-          if (j.id === id) return false;
-          return true;
-        })
-      );
+      setJobs((currentJobs) => currentJobs.filter((job) => job.id !== id));
     } catch (error) {
       console.error(error);
     }
   };
 
-  const onApplyClick = async (id: string) => {
+  const onToggleApplyJob = async (id: string) => {
     try {
       await fetch(`http://localhost:3000/jobs/apply/${id}`, {
         method: "PUT",
@@ -63,15 +45,15 @@ function App() {
           "Content-Type": "application/json",
         },
       });
-      setJobs((jo) =>
-        jo.map((j) => {
-          if (j.id === id) {
+      setJobs((currentJobs) =>
+        currentJobs.map((job) => {
+          if (job.id === id) {
             return {
-              ...j,
+              ...job,
               hasApplied: true,
             };
           }
-          return j;
+          return job;
         })
       );
     } catch (error) {
@@ -81,68 +63,41 @@ function App() {
 
   return (
     <Container>
-      <Grid container spacing={2}>
-        {jobs.map(
-          ({
-            id,
-            title,
-            href,
-            isDeleted,
-            hasApplied,
-            companyName,
-            location,
-            scrapeLocation,
-          }) => {
-            const backgroundColor = isDeleted
-              ? "red"
-              : hasApplied
-              ? "green"
-              : "white";
-            let locationType = { symbol: "?", color: "red" };
-            if (scrapeLocation === "remote")
-              locationType = { symbol: "R", color: "green" };
-            if (scrapeLocation === "seattle")
-              locationType = { symbol: "S", color: "blue" };
-            return (
-              <Grid item key={id}>
-                <Card variant="outlined" sx={{ backgroundColor }}>
-                  <CardHeader
-                    avatar={
-                      <Avatar sx={{ bgcolor: locationType.color }}>
-                        {locationType.symbol}
-                      </Avatar>
-                    }
-                    title={title}
-                    subheader={location}
-                  />
-                  <CardContent>
-                    {/* <Typography sx={{ fontSize: 14 }}>{title}</Typography> */}
-                    <Typography sx={{ fontSize: 10 }}>{companyName}</Typography>
-                    {/* <Typography sx={{ fontSize: 10 }}>{location}</Typography> */}
-                  </CardContent>
-                  <CardActions>
-                    <a href={href} target="_blank" rel="noopener noreferrer">
-                      <Button
-                        onClick={() => setCurrentJob(id)}
-                        variant={currentJob === id ? "contained" : "outlined"}
-                        size="small"
-                      >
-                        More
-                      </Button>
-                    </a>
-                    <Button onClick={() => onDeleteClick(id)} size="small">
-                      Delete
-                    </Button>
-                    <Button onClick={() => onApplyClick(id)} size="small">
-                      Apply
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            );
-          }
-        )}
-      </Grid>
+      <TabContext value={tabValue}>
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            padding: 2,
+            background: "white", // Customize the background color if needed
+          }}
+        >
+          <TabList onChange={handleChange} centered>
+            <Tab label="New Jobs" value="1" />
+            <Tab sx={{ tabSize: "" }} label="Applied" value="2" />
+          </TabList>
+        </Box>
+
+        <TabPanel value="1">
+          <JobCards
+            jobs={jobs.filter((job) => job.hasApplied === false)}
+            jobFocusId={jobFocusId}
+            setJobFocusId={setJobFocusId}
+            onDeleteJob={onDeleteJob}
+            onToggleApplyJob={onToggleApplyJob}
+          />
+        </TabPanel>
+        <TabPanel value="2">
+          <JobCards
+            jobs={jobs.filter((job) => job.hasApplied)}
+            jobFocusId={jobFocusId}
+            setJobFocusId={setJobFocusId}
+            onDeleteJob={onDeleteJob}
+            onToggleApplyJob={onToggleApplyJob}
+          />
+        </TabPanel>
+      </TabContext>
     </Container>
   );
 }
