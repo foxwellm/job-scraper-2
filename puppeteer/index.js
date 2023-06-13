@@ -5,8 +5,9 @@ const { findAllRemovedTitles } = require("../storage");
 // @TODO: fromAge argument
 const initialPages = [
   "https://www.glassdoor.com/Job/remote-software-engineer-jobs-SRCH_IL.0,6_IS11047_KO7,24.htm?fromAge=1&minRating=4.00",
-  "https://www.glassdoor.com/Job/seattle-software-engineer-jobs-SRCH_IL.0,7_IC1150458_KO8,25.htm?fromAge=1&minRating=4.00&radius=100",
-  // "https://www.glassdoor.com/Job/everett-software-developer-jobs-SRCH_IL.0,7_IC1150458_KO8,26.htm?fromAge=1&minRating=4.00&radius=100"
+  // "https://www.glassdoor.com/Job/remote-software-developer-jobs-SRCH_IL.0,6_IS11047_KO7,25.htm?fromAge=1&minRating=4.00",
+  // "https://www.glassdoor.com/Job/seattle-software-engineer-jobs-SRCH_IL.0,7_IC1150458_KO8,25.htm?fromAge=1&minRating=4.00&radius=100",
+  // "https://www.glassdoor.com/Job/seattle-software-developer-jobs-SRCH_IL.0,7_IC1150458_KO8,26.htm?fromAge=1&minRating=4.00&radius=100",
 ];
 
 (async () => {
@@ -34,6 +35,7 @@ const initialPages = [
 
     await page.goto(scrapePage, { waitUntil: "networkidle0" });
     console.log(`Successfully navigated to ${scrapePage}`);
+    await new Promise((r) => setTimeout(r, 3000));
 
     let paginationNumber = 1;
 
@@ -71,6 +73,7 @@ const initialPages = [
 
 async function scrapePageJobs(page, scrapeRunTime, scrapePage) {
   const newJobs = {};
+  // @TODO: Loop over $$
   const elements = await page.$$(".react-job-listing");
 
   for (let i = 0; i < elements.length; i++) {
@@ -120,6 +123,11 @@ async function scrapePageJobs(page, scrapeRunTime, scrapePage) {
       continue;
     }
 
+    if (checkCompanyName(companyName)) {
+      console.log(`Not adding company: ${companyName}`);
+      continue;
+    }
+
     if (checkTitleContainsRemovedWord(title)) {
       console.log(`Not adding title: ${title}`);
       continue;
@@ -137,6 +145,10 @@ async function scrapePageJobs(page, scrapeRunTime, scrapePage) {
     }, desc);
 
     if (!checkDescriptionContains(jobDesc)) {
+      continue;
+    }
+
+    if (checkDescriptionDoesNotContain(jobDesc)) {
       console.log(`Not adding ${href}`);
       continue;
     }
@@ -180,9 +192,25 @@ function checkTitleContainsRemovedWord(title) {
 }
 
 function checkDescriptionContains(jobDesc) {
-  const checkWords = ["node", "javascript", "react", "vue"];
+  const checkWords = ["node", "javascript", "typescript", "react", "vue"];
 
   return checkWords.some((checkWord) => {
     return jobDesc.toLowerCase().includes(checkWord);
+  });
+}
+
+function checkDescriptionDoesNotContain(jobDesc) {
+  const checkWords = ["clearance"];
+
+  return checkWords.some((checkWord) => {
+    return jobDesc.toLowerCase().includes(checkWord);
+  });
+}
+
+function checkCompanyName(companyName) {
+  const checkWords = ["jobot", "microsoft"];
+
+  return checkWords.some((checkWord) => {
+    return companyName.toLowerCase().includes(checkWord);
   });
 }

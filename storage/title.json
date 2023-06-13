@@ -41,7 +41,11 @@
     "assembly",
     "oracle",
     "mainframe",
-    "mean"
+    "mean",
+    "laravel",
+    "sharepoint",
+    "microsoft",
+    "mobile"
   ],
   "removeRegexTitle": ["java"]
 }
