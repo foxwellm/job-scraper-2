@@ -37,7 +37,7 @@ function App() {
     }
   };
 
-  const onToggleApplyJob = async (id: string) => {
+  const onApplyJob = async (id: string) => {
     try {
       await fetch(`http://localhost:3000/jobs/apply/${id}`, {
         method: "PUT",
@@ -51,6 +51,30 @@ function App() {
             return {
               ...job,
               hasApplied: true,
+            };
+          }
+          return job;
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const onClaimJob = async (id: string) => {
+    try {
+      await fetch(`http://localhost:3000/jobs/claim/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setJobs((currentJobs) =>
+        currentJobs.map((job) => {
+          if (job.id === id) {
+            return {
+              ...job,
+              hasClaimed: true,
             };
           }
           return job;
@@ -75,7 +99,8 @@ function App() {
         >
           <TabList onChange={handleChange} centered>
             <Tab label="New Jobs" value="1" />
-            <Tab sx={{ tabSize: "" }} label="Applied" value="2" />
+            <Tab label="Applied" value="2" />
+            <Tab label="Claimed" value="3" />
           </TabList>
         </Box>
 
@@ -85,16 +110,22 @@ function App() {
             jobFocusId={jobFocusId}
             setJobFocusId={setJobFocusId}
             onDeleteJob={onDeleteJob}
-            onToggleApplyJob={onToggleApplyJob}
+            onApplyJob={onApplyJob}
           />
         </TabPanel>
         <TabPanel value="2">
           <JobCards
-            jobs={jobs.filter((job) => job.hasApplied)}
+            jobs={jobs.filter((job) => job.hasApplied && !job.hasClaimed)}
             jobFocusId={jobFocusId}
             setJobFocusId={setJobFocusId}
-            onDeleteJob={onDeleteJob}
-            onToggleApplyJob={onToggleApplyJob}
+            onClaimJob={onClaimJob}
+          />
+        </TabPanel>
+        <TabPanel value="3">
+          <JobCards
+            jobs={jobs.filter((job) => job.hasClaimed)}
+            jobFocusId={jobFocusId}
+            setJobFocusId={setJobFocusId}
           />
         </TabPanel>
       </TabContext>

@@ -15,13 +15,15 @@ export default function JobCards({
   jobFocusId,
   setJobFocusId,
   onDeleteJob,
-  onToggleApplyJob,
+  onApplyJob,
+  onClaimJob,
 }: {
   jobs: Job[];
   jobFocusId: string;
   setJobFocusId: any;
-  onDeleteJob: any;
-  onToggleApplyJob: any;
+  onDeleteJob?: (id: string) => void;
+  onApplyJob?: (id: string) => void;
+  onClaimJob?: (id: string) => void;
 }) {
   return (
     <Grid container spacing={2}>
@@ -58,22 +60,37 @@ export default function JobCards({
                   >
                     More
                   </Button>
-                  <Button
+                  {
+                    onApplyJob && <Button
                     color="success"
                     variant="outlined"
-                    onClick={() => onToggleApplyJob(id)}
+                    onClick={() => onApplyJob(id)}
                     size="small"
                   >
                     Apply
                   </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => onDeleteJob(id)}
-                    size="small"
-                  >
-                    Delete
-                  </Button>
+                  }
+                  
+                  {onDeleteJob && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => onDeleteJob(id)}
+                      size="small"
+                    >
+                      Delete
+                    </Button>
+                  )}
+                  {onClaimJob && (
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => onClaimJob(id)}
+                      size="small"
+                    >
+                      Claim
+                    </Button>
+                  )}
                 </CardActions>
               </Card>
             </Grid>

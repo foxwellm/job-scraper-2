@@ -6,5 +6,6 @@ export interface Job {
   href: string;
   isDeleted: boolean;
   hasApplied: boolean;
+  hasClaimed?: boolean;
   scrapeLocation: string;
 }

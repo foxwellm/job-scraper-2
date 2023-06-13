@@ -4,6 +4,7 @@ const path = require("path");
 module.exports = {
   addJobs,
   applyJob,
+  claimJob,
   deleteJob,
   findAllRemovedTitles,
   getJobs,
@@ -100,6 +101,25 @@ function applyJob(id) {
     fs.writeFile(filename, JSON.stringify(jobs), (err) => {
       if (err) console.error(err);
       console.log("Job Applied successfully!");
+    });
+  });
+}
+
+function claimJob(id) {
+  const filename = path.join(__dirname, jobsStorageFile);
+
+  fs.readFile(filename, (err, fileData) => {
+    const jobs = JSON.parse(fileData);
+
+    jobs[id] = {
+      ...jobs[id],
+      hasClaimed: true,
+    };
+
+    // Modify the data and write it back to the file
+    fs.writeFile(filename, JSON.stringify(jobs), (err) => {
+      if (err) console.error(err);
+      console.log("Job Claimed successfully!");
     });
   });
 }

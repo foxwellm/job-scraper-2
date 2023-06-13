@@ -5,7 +5,7 @@ const app = express();
 // Enable CORS
 app.use(cors())
 
-const { applyJob, getJobs, deleteJob } = require("../storage");
+const { applyJob, claimJob, getJobs, deleteJob } = require("../storage");
 
 app.get("/jobs", (req, res) => {
   const jobs = getJobs();
@@ -22,6 +22,13 @@ app.put('/jobs/apply/:id', (req, res) => {
   const id = req.params.id;
 
   applyJob(id)
+  res.send(id);
+})
+
+app.put('/jobs/claim/:id', (req, res) => {
+  const id = req.params.id;
+
+  claimJob(id)
   res.send(id);
 })
 

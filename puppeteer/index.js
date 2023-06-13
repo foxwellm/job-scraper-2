@@ -5,9 +5,9 @@ const { findAllRemovedTitles } = require("../storage");
 // @TODO: fromAge argument
 const initialPages = [
   "https://www.glassdoor.com/Job/remote-software-engineer-jobs-SRCH_IL.0,6_IS11047_KO7,24.htm?fromAge=1&minRating=4.00",
-  // "https://www.glassdoor.com/Job/remote-software-developer-jobs-SRCH_IL.0,6_IS11047_KO7,25.htm?fromAge=1&minRating=4.00",
-  // "https://www.glassdoor.com/Job/seattle-software-engineer-jobs-SRCH_IL.0,7_IC1150458_KO8,25.htm?fromAge=1&minRating=4.00&radius=100",
-  // "https://www.glassdoor.com/Job/seattle-software-developer-jobs-SRCH_IL.0,7_IC1150458_KO8,26.htm?fromAge=1&minRating=4.00&radius=100",
+  "https://www.glassdoor.com/Job/remote-software-developer-jobs-SRCH_IL.0,6_IS11047_KO7,25.htm?fromAge=1&minRating=4.00",
+  "https://www.glassdoor.com/Job/seattle-software-engineer-jobs-SRCH_IL.0,7_IC1150458_KO8,25.htm?fromAge=1&minRating=4.00&radius=100",
+  "https://www.glassdoor.com/Job/seattle-software-developer-jobs-SRCH_IL.0,7_IC1150458_KO8,26.htm?fromAge=1&minRating=4.00&radius=100",
 ];
 
 (async () => {
@@ -22,15 +22,16 @@ const initialPages = [
     },
     // args: ["--desktop-window-1080p"],
   });
-  const page = await browser.newPage();
-  // Avoid site detecting headless browser
-  await page.setUserAgent(
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
-  );
 
   const scrapeRunTime = Date.now();
 
   for (let i = 0; i < initialPages.length; i++) {
+    const page = await browser.newPage();
+    // Avoid site detecting headless browser
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+    );
+
     const scrapePage = initialPages[i];
 
     await page.goto(scrapePage, { waitUntil: "networkidle0" });
@@ -66,6 +67,8 @@ const initialPages = [
         paginationNumber = 0;
       }
     }
+
+    page.close();
   }
 
   await browser.close();
@@ -135,14 +138,20 @@ async function scrapePageJobs(page, scrapeRunTime, scrapePage) {
 
     // DESCRIPTION
     await elements[i].click();
+    await new Promise((r) => setTimeout(r, 500));
     await page.waitForNetworkIdle();
 
     const desc = await page.$(".jobDescriptionContent");
-    const { jobDesc } = await page.evaluate((el) => {
-      return {
-        jobDesc: el.innerText,
-      };
-    }, desc);
+
+    let jobDesc;
+
+    try {
+      jobDesc = await page.evaluate((el) => el.innerText, desc);
+    } catch (err) {
+      console.error(err);
+      console.log("Error grabbing description");
+      continue;
+    }
 
     if (!checkDescriptionContains(jobDesc)) {
       continue;
@@ -208,7 +217,7 @@ function checkDescriptionDoesNotContain(jobDesc) {
 }
 
 function checkCompanyName(companyName) {
-  const checkWords = ["jobot", "microsoft"];
+  const checkWords = ["jobot", "microsoft", "braintrust"];
 
   return checkWords.some((checkWord) => {
     return companyName.toLowerCase().includes(checkWord);
